@@ -1066,8 +1066,8 @@ task.spawn(function()
 	Credits.Position = UDim2.new(0, -5, 0.9, 30)
 	Credits.Size = UDim2.new(0, 250, 0, 20)
 	Credits.Font = Enum.Font.SourceSansLight
-	Credits.FontSize = Enum.FontSize.Size96
-	Credits.Text = "I GOON TO HOPPER"
+	Credits.FontSize = Enum.FontSize.Size24
+	Credits.Text = "MADE BY dccxy4b14n ON DISCORD"
 	Credits.TextColor3 = Color3.new(1, 1, 1)
 	Credits.ZIndex = 10
 
@@ -13761,7 +13761,6 @@ task.spawn(function()
     end
 
     local function makeDraggable(gui)
-        -- Skip our custom binder frame since it handles its own animations and drag listeners
         if gui.Name == "CustomKeybindMainFrame" then return end
 
         local drag, dragStart, startPos
