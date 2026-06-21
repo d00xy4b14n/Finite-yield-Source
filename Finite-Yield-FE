@@ -134,6 +134,297 @@ task.spawn(function()
 		return iyassets[asset]
 	end
 
+	local function OpenCustomBindMenu()
+		local CoreGui = game:GetService("CoreGui")
+		local UserInputService = game:GetService("UserInputService")
+		local parentContainer = (gethui and gethui()) or CoreGui
+
+		local existingContainer = parentContainer:FindFirstChild("IY_SafeDrag_SetKeybindsUI_Compact")
+		if existingContainer then
+			local mainFrame = existingContainer:FindFirstChild("CustomKeybindMainFrame")
+			if mainFrame then
+				mainFrame:TweenPosition(UDim2.new(0.5, -160, 0.5, -90), "InOut", "Quart", 0.5, true, nil)
+			end
+			return
+		end
+
+		local safeContainer = Instance.new("ScreenGui")
+		safeContainer.Name = "IY_SafeDrag_SetKeybindsUI_Compact"
+		safeContainer.Parent = parentContainer
+
+		local mainFrame = Instance.new("Frame")
+		mainFrame.Name = "CustomKeybindMainFrame"
+		mainFrame.Size = UDim2.new(0, 320, 0, 160)
+		mainFrame.Position = UDim2.new(0.5, -160, 0, -250)
+		mainFrame.BackgroundColor3 = currentShade2
+		mainFrame.BackgroundTransparency = 0.35
+		mainFrame.BorderSizePixel = 0
+		mainFrame.Active = true
+		mainFrame.ClipsDescendants = true
+		mainFrame.Parent = safeContainer
+
+		local mainCorner = Instance.new("UICorner")
+		mainCorner.CornerRadius = UDim.new(0, 12)
+		mainCorner.Parent = mainFrame
+
+		local headerBar = Instance.new("Frame")
+		headerBar.Name = "HeaderBar"
+		headerBar.Size = UDim2.new(1, 0, 0, 18)
+		headerBar.BackgroundColor3 = currentShade1
+		headerBar.BackgroundTransparency = 0.35
+		headerBar.BorderSizePixel = 0
+		headerBar.Parent = mainFrame
+		
+		local headerCorner = Instance.new("UICorner")
+		headerCorner.CornerRadius = UDim.new(0, 12)
+		headerCorner.Parent = headerBar
+
+		local titleText = Instance.new("TextLabel")
+		titleText.Name = "TitleText"
+		titleText.Size = UDim2.new(1, 0, 1, 0)
+		titleText.BackgroundTransparency = 1
+		titleText.Text = "Set Keybinds"
+		titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+		titleText.Font = Enum.Font.SourceSans
+		titleText.TextSize = 13
+		titleText.Parent = headerBar
+
+		local closeButton = Instance.new("TextButton")
+		closeButton.Name = "CloseButton"
+		closeButton.Size = UDim2.new(0, 25, 1, 0)
+		closeButton.Position = UDim2.new(1, -25, 0, 0)
+		closeButton.BackgroundTransparency = 1
+		closeButton.Text = "×"
+		closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		closeButton.Font = Enum.Font.SourceSans
+		closeButton.TextSize = 24
+		closeButton.Parent = headerBar
+
+		local divider = Instance.new("Frame")
+		divider.Name = "Divider"
+		divider.Size = UDim2.new(0, 2, 1, -18)
+		divider.Position = UDim2.new(0.38, 0, 0, 18)
+		divider.BackgroundColor3 = currentShade3
+		divider.BackgroundTransparency = 0.35
+		divider.BorderSizePixel = 0
+		divider.Parent = mainFrame
+
+		local leftPanel = Instance.new("Frame")
+		leftPanel.Name = "LeftPanel"
+		leftPanel.Size = UDim2.new(0.38, 0, 1, -18)
+		leftPanel.Position = UDim2.new(0, 0, 0, 18)
+		leftPanel.BackgroundTransparency = 1
+		leftPanel.Parent = mainFrame
+
+		local instructions = Instance.new("TextLabel")
+		instructions.Name = "Instructions"
+		instructions.Size = UDim2.new(0.9, 0, 0.45, 0)
+		instructions.Position = UDim2.new(0.05, 0, 0.05, 0)
+		instructions.BackgroundTransparency = 1
+		instructions.Text = "Click below to bind\na key. Select what\nyou want to bind it to."
+		instructions.TextColor3 = Color3.fromRGB(255, 255, 255)
+		instructions.Font = Enum.Font.SourceSans
+		instructions.TextSize = 14
+		instructions.TextWrapped = true
+		instructions.Parent = leftPanel
+
+		local bindButton = Instance.new("TextButton")
+		bindButton.Name = "BindButton"
+		bindButton.Size = UDim2.new(0.85, 0, 0.25, 0)
+		bindButton.Position = UDim2.new(0.075, 0, 0.55, 0)
+		bindButton.BackgroundColor3 = currentShade3
+		bindButton.BackgroundTransparency = 0.35
+		bindButton.BorderSizePixel = 0
+		bindButton.Text = "Click to bind"
+		bindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		bindButton.Font = Enum.Font.SourceSans
+		bindButton.TextSize = 16
+		bindButton.Parent = leftPanel
+
+		local btnCorner1 = Instance.new("UICorner")
+		btnCorner1.CornerRadius = UDim.new(0, 6)
+		btnCorner1.Parent = bindButton
+
+		local rightPanel = Instance.new("Frame")
+		rightPanel.Name = "RightPanel"
+		rightPanel.Size = UDim2.new(0.62, -2, 1, -18)
+		rightPanel.Position = UDim2.new(0.38, 2, 0, 18)
+		rightPanel.BackgroundTransparency = 1
+		rightPanel.Parent = mainFrame
+
+		local toggleLabel = Instance.new("TextLabel")
+		toggleLabel.Name = "ToggleLabel"
+		toggleLabel.Size = UDim2.new(0.5, 0, 0.2, 0)
+		toggleLabel.Position = UDim2.new(0.05, 0, 0.05, 0)
+		toggleLabel.BackgroundTransparency = 1
+		toggleLabel.Text = "Toggle"
+		toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		toggleLabel.Font = Enum.Font.SourceSans
+		toggleLabel.TextSize = 15
+		toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+		toggleLabel.Parent = rightPanel
+
+		local toggleBox = Instance.new("TextButton") 
+		toggleBox.Name = "ToggleBox"
+		toggleBox.Size = UDim2.new(0, 12, 0, 12) 
+		toggleBox.Position = UDim2.new(0.85, 0, 0.08, 0)
+		toggleBox.BackgroundColor3 = currentShade3
+		toggleBox.BackgroundTransparency = 0.35
+		toggleBox.BorderSizePixel = 0
+		toggleBox.Text = ""
+		toggleBox.Parent = rightPanel
+
+		local boxCorner = Instance.new("UICorner")
+		boxCorner.CornerRadius = UDim.new(0, 3)
+		boxCorner.Parent = toggleBox
+
+		local command1Input = Instance.new("TextBox")
+		command1Input.Name = "Command1Input"
+		command1Input.Size = UDim2.new(0.7, 0, 0.2, 0)
+		command1Input.Position = UDim2.new(0.05, 0, 0.3, 0)
+		command1Input.BackgroundColor3 = currentShade1
+		command1Input.BackgroundTransparency = 0.35
+		command1Input.BorderSizePixel = 0
+		command1Input.Text = "" 
+		command1Input.PlaceholderText = " Command" 
+		command1Input.PlaceholderColor3 = Color3.fromRGB(180, 180, 180) 
+		command1Input.TextColor3 = Color3.fromRGB(255, 255, 255)
+		command1Input.Font = Enum.Font.SourceSans
+		command1Input.TextSize = 15
+		command1Input.TextXAlignment = Enum.TextXAlignment.Left
+		command1Input.ClearTextOnFocus = false
+		command1Input.Parent = rightPanel
+
+		local inputCorner1 = Instance.new("UICorner")
+		inputCorner1.CornerRadius = UDim.new(0, 6)
+		inputCorner1.Parent = command1Input
+
+		local addButton = Instance.new("TextButton")
+		addButton.Name = "AddButton"
+		addButton.Size = UDim2.new(0.18, 0, 0.2, 0)
+		addButton.Position = UDim2.new(0.78, 0, 0.3, 0)
+		addButton.BackgroundColor3 = currentShade3
+		addButton.BackgroundTransparency = 0.35
+		addButton.BorderSizePixel = 0
+		addButton.Text = "Add"
+		addButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		addButton.Font = Enum.Font.SourceSans
+		addButton.TextSize = 15
+		addButton.Parent = rightPanel
+
+		local btnCorner2 = Instance.new("UICorner")
+		btnCorner2.CornerRadius = UDim.new(0, 6)
+		btnCorner2.Parent = addButton
+
+		local command2Input = Instance.new("TextBox")
+		command2Input.Name = "Command2Input"
+		command2Input.Size = UDim2.new(0.7, 0, 0.2, 0)
+		command2Input.Position = UDim2.new(0.05, 0, 0.55, 0)
+		command2Input.BackgroundColor3 = currentShade1
+		command2Input.BackgroundTransparency = 0.35
+		command2Input.BorderSizePixel = 0
+		command2Input.Text = ""
+		command2Input.PlaceholderText = " Command 2"
+		command2Input.PlaceholderColor3 = Color3.fromRGB(180, 180, 180) 
+		command2Input.TextColor3 = Color3.fromRGB(255, 255, 255)
+		command2Input.Font = Enum.Font.SourceSans
+		command2Input.TextSize = 15
+		command2Input.TextXAlignment = Enum.TextXAlignment.Left
+		command2Input.ClearTextOnFocus = false
+		command2Input.Parent = rightPanel
+
+		local inputCorner2 = Instance.new("UICorner")
+		inputCorner2.CornerRadius = UDim.new(0, 6)
+		inputCorner2.Parent = command2Input
+
+		local isToggleEnabled = false
+		local isBinding = false
+		local selectedKey = nil
+
+		command2Input.Visible = false
+
+		toggleBox.MouseButton1Click:Connect(function()
+			isToggleEnabled = not isToggleEnabled
+			toggleBox.BackgroundColor3 = isToggleEnabled and Color3.fromRGB(0, 255, 0) or currentShade3
+			command2Input.Visible = isToggleEnabled
+		end)
+
+		bindButton.MouseButton1Click:Connect(function()
+			if isBinding then return end
+			isBinding = true
+			bindButton.Text = "Press any key..."
+
+			local connection
+			connection = UserInputService.InputBegan:Connect(function(input)
+				local keyName = nil
+				if input.UserInputType == Enum.UserInputType.Keyboard then
+					keyName = input.KeyCode.Name
+				elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+					keyName = "LeftClick"
+				elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+					keyName = "RightClick"
+				end
+				
+				if keyName then
+					selectedKey = keyName
+					bindButton.Text = keyName
+					isBinding = false
+					connection:Disconnect()
+				end
+			end)
+		end)
+
+		addButton.MouseButton1Click:Connect(function()
+			if not selectedKey or command1Input.Text == "" or command1Input.Text:match("^%s*$") then 
+				return 
+			end
+
+			local cmd = command1Input.Text
+			local isToggle = (isToggleEnabled and command2Input.Text ~= "" and not command2Input.Text:match("^%s*$")) and command2Input.Text or nil
+			local formattedKey = (selectedKey:lower() == "rightclick" and "RightClick") or (selectedKey:lower() == "leftclick" and "LeftClick") or "Enum.KeyCode." .. selectedKey:upper()
+
+			if unkeybind then unkeybind(cmd, formattedKey) end
+			if addbind then addbind(cmd, formattedKey, false, isToggle) end
+			if refreshbinds then refreshbinds() end
+			if updatesaves then updatesaves() end
+			
+			command1Input.Text = ""
+			command2Input.Text = ""
+		end)
+
+		closeButton.MouseButton1Click:Connect(function()
+			mainFrame:TweenPosition(UDim2.new(0.5, -160, 0, -250), "InOut", "Quart", 0.5, true, function()
+				safeContainer:Destroy() 
+			end)
+		end)
+
+		local drag, dragStart, startPos
+		headerBar.Active = true
+
+		headerBar.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				drag = true
+				dragStart = input.Position
+				startPos = mainFrame.AbsolutePosition
+			end
+		end)
+		
+		UserInputService.InputChanged:Connect(function(input)
+			if drag and input.UserInputType == Enum.UserInputType.MouseMovement then
+				local delta = input.Position - dragStart
+				mainFrame.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
+			end
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				drag = false
+			end
+		end)
+
+		mainFrame:TweenPosition(UDim2.new(0.5, -160, 0.5, -90), "InOut", "Quart", 0.5, true, nil)
+	end
+
 	if makefolder and isfolder and writefile and isfile then
 		pcall(function() -- good executor trust
 			local assets = "https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/"
@@ -151,7 +442,7 @@ task.spawn(function()
 		end)
 	end
 
-	currentVersion = "0.1.3 RE"
+	currentVersion = "0.1.55 RE"
 
 	ScaledHolder = Instance.new("Frame")
 	Scale = Instance.new("UIScale")
@@ -4081,7 +4372,8 @@ task.spawn(function()
 	end)
 
 	Add.MouseButton1Click:Connect(function()
-		KeybindEditor:TweenPosition(UDim2.new(0.5, -180, 0, 260), "InOut", "Quart", 0.5, true, nil)
+		OpenCustomBindMenu()
+		--KeybindEditor:TweenPosition(UDim2.new(0.5, -180, 0, 260), "InOut", "Quart", 0.5, true, nil)
 	end)
 
 	Delete.MouseButton1Click:Connect(function()
@@ -13468,37 +13760,40 @@ task.spawn(function()
         end
     end
 
-	local function makeDraggable(gui)
-		local drag, dragStart, startPos
-		local trigger = gui:FindFirstChild("TopBar") or gui:FindFirstChild("Title") or gui
-	
-		local safeContainer = Instance.new("ScreenGui", game:GetService("CoreGui"))
-		safeContainer.Name = "IY_SafeDrag_" .. gui.Name
-		gui.Parent = safeContainer 
-		
-		trigger.Active = true
-		
-		trigger.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				drag = true
-				dragStart = input.Position
-				startPos = gui.AbsolutePosition
-			end
-		end)
-		
-		game:GetService("UserInputService").InputChanged:Connect(function(input)
-			if drag and input.UserInputType == Enum.UserInputType.MouseMovement then
-				local delta = input.Position - dragStart
-				gui.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
-			end
-		end)
-		
-		game:GetService("UserInputService").InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				drag = false
-			end
-		end)
-	end
+    local function makeDraggable(gui)
+        -- Skip our custom binder frame since it handles its own animations and drag listeners
+        if gui.Name == "CustomKeybindMainFrame" then return end
+
+        local drag, dragStart, startPos
+        local trigger = gui:FindFirstChild("TopBar") or gui:FindFirstChild("Title") or gui
+    
+        local safeContainer = Instance.new("ScreenGui", game:GetService("CoreGui"))
+        safeContainer.Name = "IY_SafeDrag_" .. gui.Name
+        gui.Parent = safeContainer 
+        
+        trigger.Active = true
+        
+        trigger.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                drag = true
+                dragStart = input.Position
+                startPos = gui.AbsolutePosition
+            end
+        end)
+        
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if drag and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                gui.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
+            end
+        end)
+        
+        game:GetService("UserInputService").InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                drag = false
+            end
+        end)
+    end
 
     local function applyExtraFeatures(gui)
         gui.ClipsDescendants = true 
@@ -13507,7 +13802,7 @@ task.spawn(function()
     local p = ScaledHolder or game:GetService("CoreGui"):FindFirstChild("RobloxGui")
     if p then
         for _, child in ipairs(p:GetChildren()) do
-            if child:IsA("Frame") then
+            if child:IsA("Frame") and child.Name ~= "CustomKeybindMainFrame" then
                 applyCorner(child) 
                 makeDraggable(child) 
                 applyExtraFeatures(child)
