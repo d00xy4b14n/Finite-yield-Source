@@ -442,7 +442,7 @@ task.spawn(function()
 		end)
 	end
 
-	currentVersion = "0.1.6 RE"
+	currentVersion = "0.1.65 RE"
 
 	ScaledHolder = Instance.new("Frame")
 	Scale = Instance.new("UIScale")
@@ -12113,11 +12113,13 @@ task.spawn(function()
 				movel = movel * -1
 			end
 		until walkflinging == false
+		notify("Walkfling", "Inactive")
 	end)
 
 	addcmd("unwalkfling", {"nowalkfling"}, function(args, speaker)
 		walkflinging = false
 		execCmd("unnoclip nonotify")
+		notify("Walkfling", "Active")
 	end)
 
 	addcmd("togglewalkfling", {}, function(args, speaker)
