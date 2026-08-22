@@ -5019,6 +5019,8 @@ task.spawn(function()
 	CMDs[#CMDs + 1] = {NAME = 'unflyfling', DESC = 'Disables the flyfling command'}
 	CMDs[#CMDs + 1] = {NAME = 'walkfling', DESC = 'Basically fling but no spinning'}
 	CMDs[#CMDs + 1] = {NAME = 'unwalkfling / nowalkfling', DESC = 'Disables walkfling'}
+	CMDs[#CMDs + 1] = {NAME = 'reprootfling / rrfling / repfling', DESC = 'PhysicsRepRootPart fling'}
+	CMDs[#CMDs + 1] = {NAME = 'unrrfling / unrepfling', DESC = 'stopsRepRootpart fling'}
 	CMDs[#CMDs + 1] = {NAME = 'invisfling', DESC = 'Enables invisible fling (the invis part is patched, try using the god command before using this)'}
 	CMDs[#CMDs + 1] = {NAME = 'antifling', DESC = 'Disables player collisions to prevent you from being flung'}
 	CMDs[#CMDs + 1] = {NAME = 'unantifling', DESC = 'Disables antifling'}
@@ -6758,7 +6760,7 @@ task.spawn(function()
 	Players.LocalPlayer.OnTeleport:Connect(function(State)
 		if KeepInfYield and (not TeleportCheck) and queueteleport then
 			TeleportCheck = true
-			queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()")
+			queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/d00xy4b14n/Finite-Yield/refs/heads/main/finite'))()")
 		end
 	end)
 
@@ -12046,6 +12048,138 @@ task.spawn(function()
 				v:Destroy()
 			end
 		end
+		for _, child in pairs(speakerChar:GetDescendants()) do
+			if child.ClassName == "Part" or child.ClassName == "MeshPart" then
+				child.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5)
+			end
+		end
+	end)
+
+	addcmd('reprootfling', {'rrfling', 'repfling'}, function(args, speaker)
+		local speakerChar = speaker.Character
+		if not speakerChar or not getRoot(speakerChar) then return end
+		local root = getRoot(speakerChar)
+
+		flinging = true -- Infinite Yield'ın fling state'ini aktifleştir
+
+		-- Eğer önceden kalan bir flingDied bağlantısı varsa temizle
+		if flingDied then
+			flingDied:Disconnect()
+		end
+
+		-- UNC ve No-UNC kontrolleri
+		local hasHiddenProp = type(sethiddenproperty) == "function"
+		local hasScriptable = type(setscriptable) == "function"
+
+		-- RepRoot Mantığı için Sahte Düğüm (Spoof Part)
+		local spoof = Instance.new("Part")
+		spoof.Name = "RepRootNode"
+		spoof.Size = Vector3.new(1, 1, 1)
+		spoof.Transparency = 1
+		spoof.CanCollide = false
+		spoof.Massless = true
+		spoof.CFrame = root.CFrame
+		spoof.Parent = workspace
+
+		-- UNC / No-UNC Replikasyon Manipülasyonu
+		local function applyRepRoot(target)
+			pcall(function()
+				if hasHiddenProp or hasScriptable then
+					-- UNC Variant (Hidden)
+					if hasScriptable then setscriptable(speakerChar, "PhysicsRepRootPart", true) end
+					if hasHiddenProp then sethiddenproperty(speakerChar, "PhysicsRepRootPart", target) end
+				else
+					-- No-UNC Variant (Game-Detectable)
+					speakerChar.PrimaryPart = target
+				end
+			end)
+		end
+
+		-- Replikasyon merkezini sahte parta çek
+		applyRepRoot(spoof)
+
+		local RunService = game:GetService("RunService")
+		local duration = 0.1
+		local startTime = tick()
+		local flingConn
+		
+		-- WalkFling / Travel Döngüsü
+		flingConn = RunService.Heartbeat:Connect(function()
+			-- Süre dolduğunda veya unfling yapıldığında (flinging = false) iptal et
+			if tick() - startTime > duration or not flinging then
+				flingConn:Disconnect()
+				applyRepRoot(root) -- Orijinal HRP'ye dön
+				if spoof and spoof.Parent then
+					spoof:Destroy()
+				end
+				return
+			end
+
+			-- Milyonlarca studluk devasa hız vektörü
+			local velocity = root.CFrame.LookVector * 5000000
+			local angular = Vector3.new(99999, 99999, 99999)
+
+			-- Sahte part ve gerçek root üzerine hız yüklemesi
+			spoof.CFrame = root.CFrame
+			spoof.AssemblyLinearVelocity = velocity
+			spoof.AssemblyAngularVelocity = angular
+
+			root.AssemblyLinearVelocity = velocity
+			root.AssemblyAngularVelocity = angular
+		end)
+
+		-- Karakter ölürse fling'i durdur ve temizle
+		local humanoid = speakerChar:FindFirstChildWhichIsA("Humanoid")
+		if humanoid then
+			flingDied = humanoid.Died:Connect(function()
+				flinging = false
+				applyRepRoot(root)
+				if spoof and spoof.Parent then spoof:Destroy() end
+				if flingConn then flingConn:Disconnect() end
+			end)
+		end
+	end)
+
+	addcmd('unrrfling', {'unrepfling', 'unreprootfling'}, function(args, speaker)
+		execCmd('clip') -- IY'nin içindeki standart clip komutunu tetikler
+		
+		if flingDied then
+			flingDied:Disconnect()
+		end
+		
+		flinging = false -- reprootfling içindeki Heartbeat döngüsünü durdurur
+		wait(.1) -- Döngünün kapanması için çok kısa bir an bekle
+		
+		local speakerChar = speaker.Character
+		if not speakerChar or not getRoot(speakerChar) then return end
+		local root = getRoot(speakerChar)
+		
+		-- UNC ve No-UNC kontrolleri
+		local hasHiddenProp = type(sethiddenproperty) == "function"
+		local hasScriptable = type(setscriptable) == "function"
+		
+		-- PhysicsRepRootPart'ı orijinal Root'a (eski haline) döndür
+		pcall(function()
+			if hasHiddenProp or hasScriptable then
+				if hasScriptable then setscriptable(speakerChar, "PhysicsRepRootPart", true) end
+				if hasHiddenProp then sethiddenproperty(speakerChar, "PhysicsRepRootPart", root) end
+			else
+				speakerChar.PrimaryPart = root
+			end
+		end)
+		
+		-- Workspace'te asılı kalmış olabilecek sahte RepRootNode'ları temizle
+		for _, v in pairs(workspace:GetChildren()) do
+			if v.Name == "RepRootNode" then
+				v:Destroy()
+			end
+		end
+		
+		-- Karakterin üzerindeki momentumu ve hızı tamamen sıfırla
+		root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		root.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+		
+		-- Orijinal unfling'de olduğu gibi fiziksel özellikleri (sürtünme/ağırlık) normale döndür
 		for _, child in pairs(speakerChar:GetDescendants()) do
 			if child.ClassName == "Part" or child.ClassName == "MeshPart" then
 				child.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5)
