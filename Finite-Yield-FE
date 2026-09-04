@@ -4810,6 +4810,10 @@ task.spawn(function()
 	CMDs[#CMDs + 1] = {NAME = 'vehicleflyspeed  / vflyspeed [num]', DESC = 'Set vehicle fly speed'}
 	CMDs[#CMDs + 1] = {NAME = 'cframefly / cfly [speed]', DESC = 'Makes you fly, bypassing some anti cheats (works on mobile)'}
 	CMDs[#CMDs + 1] = {NAME = 'uncframefly / uncfly', DESC = 'Disables cfly'}
+    CMDs[#CMDs + 1] = {NAME = 'translatebyfly / tbfly [speed]', DESC = 'Makes you fly, bypassing some anti cheats 2 (works on mobile)'}
+	CMDs[#CMDs + 1] = {NAME = 'untranslatebyfly / untbfly', DESC = 'Disables tbfly'}
+    CMDs[#CMDs + 1] = {NAME = 'cframetranslatebyfly / ctbfly [speed]', DESC = 'Makes you fly, bypassing some anti cheats 3 (works on mobile)'}
+	CMDs[#CMDs + 1] = {NAME = 'uncframetranslatebyfly / unctbfly', DESC = 'Disables ctbfly'}
 	CMDs[#CMDs + 1] = {NAME = 'cframeflyspeed  / cflyspeed [num]', DESC = 'Sets cfly speed'}
 	CMDs[#CMDs + 1] = {NAME = 'qefly [true / false]', DESC = 'Enables or disables the Q and E hotkeys for fly'}
 	CMDs[#CMDs + 1] = {NAME = 'vehiclenoclip / vnoclip', DESC = 'Turns off vehicle collision'}
@@ -5105,6 +5109,8 @@ task.spawn(function()
 	CMDs[#CMDs + 1] = {NAME = 'clearcharappearance / clearchar / clrchar', DESC = 'Removes all accessory, shirt, pants, charactermesh, and bodycolors'}
 	CMDs[#CMDs + 1] = {NAME = 'tpwalk / teleportwalk [num]', DESC = 'Teleports you to your move direction'}
 	CMDs[#CMDs + 1] = {NAME = 'untpwalk / unteleportwalk', DESC = 'Undoes tpwalk / teleportwalk'}
+    CMDs[#CMDs + 1] = {NAME = 'tpjump / teleportjump [num]', DESC = 'Teleports you to your jump direction'}
+	CMDs[#CMDs + 1] = {NAME = 'untpjump / unteleportjump', DESC = 'Undoes tpjump / teleportjump'}
 	CMDs[#CMDs + 1] = {NAME = 'trip', DESC = 'Makes your character fall over'}
 	CMDs[#CMDs + 1] = {NAME = 'wallwalk / walkonwalls', DESC = 'Walk on walls'}
 	CMDs[#CMDs + 1] = {NAME = 'promptr6', DESC = 'Prompts the game to switch your rig type to R6'}
@@ -7741,6 +7747,114 @@ task.spawn(function()
 			end)
 		end
 	end)
+
+    addcmd("tbfly", {"translatebyfly"}, function(args, speaker)
+        pcall(function() tbflying:Disconnect() end)
+        if tbflyVel then tbflyVel:Destroy() tbflyVel = nil end
+        if tbflyGyro then tbflyGyro:Destroy() tbflyGyro = nil end
+
+        local character = speaker.Character
+        local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local camera = workspace.CurrentCamera
+        local flySpeed = (args[1] and isNumber(args[1])) and tonumber(args[1]) * 16 or 60
+
+        if not root then return end
+
+        tbflyVel = Instance.new("BodyVelocity")
+        tbflyVel.Name = "BV_Bypass"
+        tbflyVel.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        tbflyVel.Velocity = Vector3.zero
+        tbflyVel.Parent = root
+
+        tbflyGyro = Instance.new("BodyGyro")
+        tbflyGyro.Name = "BG_Bypass"
+        tbflyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+        tbflyGyro.P = 1e5
+        tbflyGyro.Parent = root
+
+        tbflying = RunService.Heartbeat:Connect(function(delta)
+            if not (character and humanoid and root and root.Parent and tbflyVel and tbflyGyro) then
+                if tbflyVel then tbflyVel:Destroy() tbflyVel = nil end
+                if tbflyGyro then tbflyGyro:Destroy() tbflyGyro = nil end
+                tbflying:Disconnect()
+                return
+            end
+
+            tbflyVel.Velocity = Vector3.zero
+            tbflyGyro.CFrame = camera.CFrame
+
+            local moveVector = Vector3.zero
+            local look = camera.CFrame.LookVector
+            local right = camera.CFrame.RightVector
+
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + look end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - look end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + right end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - right end
+
+            if moveVector.Magnitude > 0 then
+                moveVector = moveVector.Unit
+                character:TranslateBy(moveVector * flySpeed * delta)
+            end
+        end)
+    end)
+
+    addcmd("untbfly", {"untranslatebyfly"}, function(args, speaker)
+        pcall(function() tbflying:Disconnect() end)
+        if tbflyVel then tbflyVel:Destroy() tbflyVel = nil end
+        if tbflyGyro then tbflyGyro:Destroy() tbflyGyro = nil end
+    end)
+
+    addcmd("ctbfly", {"cframetranslatebyfly", "cftbfly"}, function(args, speaker)
+        pcall(function() ctbflying:Disconnect() end)
+
+        local character = speaker.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local head = character and (character:FindFirstChild("Head") or root)
+        local camera = workspace.CurrentCamera
+        local flySpeed = (args[1] and isNumber(args[1])) and tonumber(args[1]) * 16 or 60
+
+        if not (character and humanoid and root and head) then return end
+
+        -- Desync ve ağ kilidi için Head sabitlenir
+        head.Anchored = true
+
+        ctbflying = RunService.Heartbeat:Connect(function(deltaTime)
+            if not (character and humanoid and root and head and root.Parent) then
+                pcall(function() ctbflying:Disconnect() end)
+                if head then head.Anchored = false end
+                return
+            end
+
+            local moveDirection = humanoid.MoveDirection * (flySpeed * deltaTime)
+            local headCFrame = head.CFrame
+            local cameraCFrame = camera.CFrame
+            local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
+            local adjustedCamCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
+            local cameraPosition = adjustedCamCFrame.Position
+            local headPosition = headCFrame.Position
+
+            local rotCFrame = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z))
+            local objectSpaceVelocity = rotCFrame:VectorToObjectSpace(moveDirection)
+            local deltaPos = adjustedCamCFrame.Rotation * objectSpaceVelocity
+
+            -- PivotTo yerine doğrudan Head.CFrame ataması yapılır (Motor6D ile tüm vücut takip eder)
+            local targetPos = headPosition + deltaPos
+            head.CFrame = CFrame.new(targetPos) * cameraCFrame.Rotation
+        end)
+    end)
+
+    addcmd("unctbfly", {"uncframetranslatebyfly", "uncftbfly"}, function(args, speaker)
+        pcall(function() ctbflying:Disconnect() end)
+
+        local character = speaker.Character
+        local head = character and (character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart"))
+        if head then
+            head.Anchored = false
+        end
+    end)
 
 	addcmd('unfloat',{'nofloat','unplatform','noplatform'},function(args, speaker)
 		Floating = false
@@ -12454,6 +12568,36 @@ task.spawn(function()
 		tpwalkStack = 0
 		tpwalking:Disconnect()
 	end)
+
+    tpjumpStack = 0
+    addcmd("teleportjump", {"tpjump"}, function(args, speaker)
+        pcall(function() tpjumping:Disconnect() end)
+
+        local character = speaker.Character
+        local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+        local power = (args[1] and isNumber(args[1])) and tonumber(args[1]) or 5
+
+        if parseBoolean(args[2]) then
+            tpjumpStack = tpjumpStack + power
+        end
+
+        tpjumping = RunService.Heartbeat:Connect(function(delta)
+            if not (character and humanoid and humanoid.Parent) then
+                tpjumping:Disconnect()
+                return
+            end
+
+            -- Zıplama tuşuna basıldığında dikey Y ekseninde yukarı ışınlar
+            if humanoid.Jump then
+                character:TranslateBy(Vector3.new(0, (power + tpjumpStack) * delta * 10, 0))
+            end
+        end)
+    end)
+
+    addcmd("unteleportjump", {"untpjump"}, function(args, speaker)
+        tpjumpStack = 0
+        pcall(function() tpjumping:Disconnect() end)
+    end)
 
 	function bring(speaker,target,fast)
 		if tools(speaker) then
